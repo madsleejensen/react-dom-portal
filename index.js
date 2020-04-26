@@ -1,56 +1,47 @@
-import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useRef, useState, useEffect, useLayoutEffect } from "react";
+import ReactDOM from "react-dom";
+
+const isServer = typeof window === "undefined";
+const useIsomorphicLayoutEffect = isServer ? useEffect : useLayoutEffect;
 
 let portalUniqueId = 1123581321;
 
-const isBrowser = Boolean(window);
-
 export function createPortal(targetDomId) {
-  const id = targetDomId || `portal--${portalUniqueId}`;
+  const id = targetDomId || `react-dom-portal--${portalUniqueId}`;
 
   portalUniqueId += 1;
 
   const Target = ({ children }) => {
     const nodeRef = useRef(null);
     const [hasPortalContent, setHasPortalContent] = useState(true);
+    const observer = useRef(null);
+
+    useIsomorphicLayoutEffect(() => {
+      const hasChildren =
+        nodeRef.current && nodeRef.current.childElementCount > 0;
+      setHasPortalContent(hasChildren);
+    }, [nodeRef]);
 
     /**
      * Detect if our `Portal.Target` target is being used anywhere.
      * If not then use fallback component (children) if defined
      */
     useEffect(() => {
-      let childCount = 0;
-
-      function onInsert() {
-        childCount += 1;
-        setHasPortalContent(true);
-      }
-
-      function onRemove() {
-        childCount -= 1;
-        setHasPortalContent(childCount > 0);
-      }
-
       if (nodeRef.current) {
-        nodeRef.current.addEventListener('DOMNodeInserted', onInsert, false);
-        nodeRef.current.addEventListener('DOMNodeRemoved', onRemove, false);
+        observer.current = new MutationObserver(() => {
+          const hasChildren =
+            nodeRef.current && nodeRef.current.childElementCount > 0;
+          setHasPortalContent(hasChildren);
+        });
 
-        setHasPortalContent(Boolean(nodeRef.current.firstChild));
+        observer.current.observe(nodeRef.current, {
+          childList: true,
+        });
       }
 
       return () => {
-        if (nodeRef.current) {
-          nodeRef.current.removeEventListener(
-            'DOMNodeInserted',
-            onInsert,
-            false
-          );
-
-          nodeRef.current.removeEventListener(
-            'DOMNodeRemoved',
-            onRemove,
-            false
-          );
+        if (observer.current) {
+          observer.current.disconnect();
         }
       };
     }, [nodeRef]);
@@ -70,12 +61,12 @@ export function createPortal(targetDomId) {
      * lazily create our `container` which will host the portal content.
      */
     function getOrCreateContainer() {
-      if (!isBrowser) {
+      if (isServer()) {
         return null;
       }
 
       if (!containerRef.current) {
-        containerRef.current = document.createElement('div');
+        containerRef.current = document.createElement("div");
       }
 
       return containerRef.current;
@@ -84,19 +75,19 @@ export function createPortal(targetDomId) {
     /**
      * find the `Portal.Target` domNode, which is needed to render `React.createPortal(..)`
      */
-    useLayoutEffect(() => {
-      if (!isBrowser) {
+    useIsomorphicLayoutEffect(() => {
+      if (isServer) {
         return () => {};
       }
 
       const targetNode = document.getElementById(id);
       if (!targetNode) {
         throw new Error(
-          'Portal unable to find target, please make sure you mounted `.Target`'
+          "Portal unable to find target, please make sure you mounted `.Target`"
         );
       }
 
-      targetNode.appendChild(containerRef.current!);
+      targetNode.appendChild(containerRef.current);
 
       return () => {
         if (containerRef.current) {
