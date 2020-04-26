@@ -1,16 +1,15 @@
 {
   "name": "react-dom-portal",
   "version": "1.0.0",
-  "description": "",
+  "description": "Declarative portals with fallback content",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Mads Lee Jensen <madsleejensen@gmail.com>",
+  "tags": [
+    "react"
+  ],
+  "license": "MIT",
   "devDependencies": {
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1"
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0"
   }
 }
