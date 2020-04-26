@@ -1,7 +1,7 @@
 {
   "name": "react-dom-portal",
   "version": "1.0.0",
-  "description": "Declarative portals with fallback content",
+  "description": "Declarative portals with fallback for React",
   "main": "index.js",
   "author": "Mads Lee Jensen <madsleejensen@gmail.com>",
   "tags": [
